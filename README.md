@@ -40,6 +40,8 @@ You can verify by loading these module and checking the created device:
 
 ```
  sudo modprobe binder_linux
+ sudo mkdir /dev/binder
+ sudo mount -t binder binder /dev/binder
  lsmod | grep -e binder_linux
  ls -alh /dev/binder
 ```
@@ -50,6 +52,19 @@ You are expected to see output like:
 binder_linux          114688  0
 crw-rw-rw- 1 root root 511,  0 Jun 19 16:30 /dev/binder
 ```
+
+To load the module always upon start or reboot add this to the end of the file `/etc/fstab` with a text editor:
+
+```
+#mount binderfs for binder applications upon boot
+none                         /dev/binder binder   nofail  0      0
+```
+for example with:
+`sudo nano /etc/fstab`
+or
+`sudo xed /etc/fstab`
+
+
 
 # Uninstall Instructions
 
