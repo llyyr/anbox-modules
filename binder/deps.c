@@ -121,36 +121,52 @@ void mmput_async(struct mm_struct *mm)
 	return mmput_async_ptr(mm);
 }
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,2))
+static int (*security_binder_set_context_mgr_ptr)(const struct cred *mgr) = NULL;
+int security_binder_set_context_mgr(const struct cred *mgr)
+#else
 static int (*security_binder_set_context_mgr_ptr)(struct task_struct *mgr) = NULL;
-
 int security_binder_set_context_mgr(struct task_struct *mgr)
+#endif
 {
 	if (!security_binder_set_context_mgr_ptr)
 		security_binder_set_context_mgr_ptr = kallsyms_lookup_name_wrapper("security_binder_set_context_mgr");
 	return security_binder_set_context_mgr_ptr(mgr);
 }
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,2))
+static int (*security_binder_transaction_ptr)(const struct cred *from, const struct cred *to) = NULL;
+int security_binder_transaction(const struct cred *from, const struct cred *to)
+#else
 static int (*security_binder_transaction_ptr)(struct task_struct *from, struct task_struct *to) = NULL;
-
 int security_binder_transaction(struct task_struct *from, struct task_struct *to)
+#endif
 {
 	if (!security_binder_transaction_ptr)
 		security_binder_transaction_ptr = kallsyms_lookup_name_wrapper("security_binder_transaction");
 	return security_binder_transaction_ptr(from, to);
 }
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,2))
+static int (*security_binder_transfer_binder_ptr)(const struct cred *from, const struct cred *to) = NULL;
+int security_binder_transfer_binder(const struct cred *from, const struct cred *to)
+#else
 static int (*security_binder_transfer_binder_ptr)(struct task_struct *from, struct task_struct *to) = NULL;
-
 int security_binder_transfer_binder(struct task_struct *from, struct task_struct *to)
+#endif
 {
 	if (!security_binder_transfer_binder_ptr)
 		security_binder_transfer_binder_ptr = kallsyms_lookup_name_wrapper("security_binder_transfer_binder");
 	return security_binder_transfer_binder_ptr(from, to);
 }
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,15,2))
+static int (*security_binder_transfer_file_ptr)(const struct cred *from, const struct cred *to, const struct file *file) = NULL;
+int security_binder_transfer_file(const struct cred *from, const struct cred *to, const struct file *file)
+#else
 static int (*security_binder_transfer_file_ptr)(struct task_struct *from, struct task_struct *to, struct file *file) = NULL;
-
 int security_binder_transfer_file(struct task_struct *from, struct task_struct *to, struct file *file)
+#endif
 {
 	if (!security_binder_transfer_file_ptr)
 		security_binder_transfer_file_ptr = kallsyms_lookup_name_wrapper("security_binder_transfer_file");

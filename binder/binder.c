@@ -2869,8 +2869,8 @@ static void binder_transaction(struct binder_proc *proc,
 	binder_size_t last_fixup_min_off = 0;
 	struct binder_context *context = proc->context;
 	int t_debug_id = atomic_inc_return(&binder_last_id);
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
-	struct lsm_context lsmctx = {};
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
+	struct lsmcontext lsmctx = {};
 #else
 	char *secctx = NULL;
 	u32 secctx_sz = 0;
@@ -3134,12 +3134,14 @@ static void binder_transaction(struct binder_proc *proc,
 
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 13, 0)
 		security_cred_getsecid(proc->cred, &secid);
+#elif LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
+		secid = 0;
 #elif LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0)
 		security_task_getsecid_obj(proc->tsk, &secid);
 #else
 		security_task_getsecid(proc->tsk, &secid);
 #endif
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 		ret = security_secid_to_secctx(secid, &lsmctx);
 		if (ret < 0) {
 #else
@@ -3151,7 +3153,7 @@ static void binder_transaction(struct binder_proc *proc,
 			return_error_line = __LINE__;
 			goto err_get_secctx_failed;
 		}
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 		added_size = ALIGN(lsmctx.len, sizeof(u64));
 #else
 		added_size = ALIGN(secctx_sz, sizeof(u64));
@@ -3182,7 +3184,7 @@ static void binder_transaction(struct binder_proc *proc,
 		t->buffer = NULL;
 		goto err_binder_alloc_buf_failed;
 	}
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 	if (lsmctx.context) {
 #else
 	if (secctx) {
@@ -3191,7 +3193,7 @@ static void binder_transaction(struct binder_proc *proc,
 		size_t buf_offset = ALIGN(tr->data_size, sizeof(void *)) +
 				    ALIGN(tr->offsets_size, sizeof(void *)) +
 				    ALIGN(extra_buffers_size, sizeof(void *)) -
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 				    ALIGN(lsmctx.len, sizeof(u64));
 #else
 				    ALIGN(secctx_sz, sizeof(u64));
@@ -3200,7 +3202,7 @@ static void binder_transaction(struct binder_proc *proc,
 		t->security_ctx = (uintptr_t)t->buffer->user_data + buf_offset;
 		err = binder_alloc_copy_to_buffer(&target_proc->alloc,
 						  t->buffer, buf_offset,
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 						  lsmctx.context, lsmctx.len);
 #else
 						  secctx, secctx_sz);
@@ -3209,7 +3211,7 @@ static void binder_transaction(struct binder_proc *proc,
 			t->security_ctx = 0;
 			WARN_ON(1);
 		}
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 		security_release_secctx(&lsmctx);
 		lsmctx.context = NULL;
 #else
@@ -3272,7 +3274,7 @@ static void binder_transaction(struct binder_proc *proc,
 	off_end_offset = off_start_offset + tr->offsets_size;
 	sg_buf_offset = ALIGN(off_end_offset, sizeof(void *));
 	sg_buf_end_offset = sg_buf_offset + extra_buffers_size -
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 		ALIGN(lsmctx.len, sizeof(u64));
 #else
 		ALIGN(secctx_sz, sizeof(u64));
@@ -3552,7 +3554,7 @@ err_copy_data_failed:
 	binder_alloc_free_buf(&target_proc->alloc, t->buffer);
 err_binder_alloc_buf_failed:
 err_bad_extra_size:
-#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 14, 0)
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 8, 0)
 	if (lsmctx.context)
 		security_release_secctx(&lsmctx);
 #else
