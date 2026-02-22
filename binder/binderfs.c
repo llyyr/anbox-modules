@@ -819,7 +819,11 @@ static struct file_system_type binder_fs_type = {
 	.name			= "binder",
 	.init_fs_context	= binderfs_init_fs_context,
 	.parameters		= binderfs_fs_parameters,
+#if LINUX_VERSION_CODE >= KERNEL_VERSION(6, 19, 0)
+	.kill_sb		= kill_anon_super,
+#else
 	.kill_sb		= kill_litter_super,
+#endif
 	.fs_flags		= FS_USERNS_MOUNT,
 };
 
